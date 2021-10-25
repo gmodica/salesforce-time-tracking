@@ -1,0 +1,160 @@
+<template>
+    <lightning-card title={label.cardTitle} icon-name="standard:timesheet_entry">
+		<span class="summary" slot="actions">{label.totalTime} <strong>{totalTime}</strong></span>
+		<lightning-button-icon slot="actions" icon-name="utility:add" alternative-text={label.addDescription} tooltip={label.addDescription} title={label.add} onclick={add}></lightning-button-icon>
+		<lightning-button-icon slot="actions" icon-name="utility:refresh" alternative-text={label.refreshDescription} tooltip={label.refreshDescription} title={label.refresh} onclick={refresh}></lightning-button-icon>
+		<span slot="actions">&nbsp;</span>
+		<lightning-button-icon-stateful slot="actions" icon-name="utility:dayview" selected={dayView} onclick={handleDayView} alternative-text={label.dayView}></lightning-button-icon-stateful>
+		<lightning-button-icon-stateful slot="actions" icon-name="utility:weeklyview" selected={weeklyView} onclick={handleWeeklyView} alternative-text={label.weeklyView}></lightning-button-icon-stateful>
+		<template if:true={isLoading}>
+			<lightning-spinner alternative-text={label.loading} size="small" variant="brand"></lightning-spinner>
+			<div class="slds-align_absolute-center">
+				<div class="slds-illustration slds-illustration_small" style="width: 60%; height: 60%">
+					<c-illustration header={label.loading} type="Desert"></c-illustration>
+				</div>
+			</div>
+		</template>
+
+		<template if:false={isLoading}>
+			<div class="slds-p-around_small">
+				<template if:true={hasError}>
+					<div class="slds-align_absolute-center">
+						<div class="slds-illustration slds-illustration_small" style="width: 30%; height: 30%">
+							<c-illustration header={label.errorTitle} sub-header={label.errorSubtitle} type="Maintenance"></c-illustration>
+						</div>
+					</div>
+				</template>
+				<template if:false={hasError}>
+					<template if:true={hasData}>
+
+						<lightning-layout multiple-rows="true">
+							<lightning-layout-item size="4" padding="around-small" flexibility="grow">
+								<strong>{label.name}</strong>
+							</lightning-layout-item>
+							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
+								<strong>{label.category}</strong>
+							</lightning-layout-item>
+							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
+								<div>&nbsp;</div>
+							</lightning-layout-item>
+							<lightning-layout-item size="2" padding="around-small" flexibility="grow">
+								<div class="slds-float_right"><strong>{label.actions}</strong></div>
+							</lightning-layout-item>
+
+							<template for:each={data} for:item="entry">
+								<template if:false={entry.hidden}>
+									<lightning-layout-item key={entry.Id} size="4" padding="horizontal-small" flexibility="grow" class="layout-item">
+										<template if:true={entry.isEdit}>
+											<lightning-input type="text" variant="label-hidden" required="true" value={entry._name} placeholder={label.namePlaceholder} onchange={handleNameChange} onkeypress={handleKeyPress} data-id={entry.Id} data-name={entry.Id}></lightning-input>
+										</template>
+										<template if:false={entry.isEdit}>
+											<div class={entry.className}><a href="#" onclick={navigateToRecord} data-id={entry.Id}>{entry.Name}</a></div>
+										</template>
+									</lightning-layout-item>
+									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
+										<template if:true={entry.isEdit}>
+											<lightning-combobox name="status" variant="label-hidden" value={entry._categoryId} onchange={handleCategoryChange} options={categoriesOptions} data-id={entry.Id} ></lightning-combobox>
+										</template>
+										<template if:false={entry.isEdit}>
+											<div class={entry.className}>{entry.categoryName}</div>
+										</template>
+									</lightning-layout-item>
+									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
+										<div class="slds-float_right">
+											<template if:false={entry.isEdit}>
+												<template if:false={entry.isRunning}>
+													<a href='#' class="a-minutes" onclick={resetEntry} title={label.reset} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">0</span></a>
+													<a href='#' class="a-minutes" onclick={add15Minutes} title={label.add15Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+15</span></a>
+													<a href='#' class="a-minutes" onclick={add30Minutes} title={label.add30Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+30</span></a>
+													<a href='#' class="a-minutes" onclick={add45Minutes} title={label.add45Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+45</span></a>
+													<a href='#' class="a-minutes" onclick={add60Minutes} title={label.add60Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+1h</span></a>
+													&nbsp;
+													<template if:false={entry.Completed__c}>
+														<button class="slds-button" title={label.start} onclick={startEntry} data-id={entry.Id} aria-label={label.start}>
+															<lightning-icon icon-name="utility:play" alternative-text={label.startDescription} size="xx-small"></lightning-icon>
+															<span class="slds-assistive-text">{label.startDescription}</span>
+														</button>
+													</template>
+													<template if:true={entry.Completed__c}>
+														<span class="spacer">&nbsp;</span>
+													</template>
+												</template>
+												<template if:true={entry.isRunning}>
+													<!-- <lightning-icon icon-name="utility:spinner" size="xx-small"></lightning-icon> -->
+													<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+													<button class="slds-button" title={label.stop} onclick={stopEntry} data-id={entry.Id} aria-label={label.stop}>
+														<lightning-icon icon-name="utility:stop" alternative-text={label.stopDescription} size="xx-small"></lightning-icon>
+														<span class="slds-assistive-text">{label.stopDescription}</span>
+													</button>
+												</template>
+											</template>
+											<span class={entry.className}>&nbsp;{entry.elapsed}</span>
+										</div>
+									</lightning-layout-item>
+									<lightning-layout-item key={entry.Id} size="2" padding="horizontal-small" flexibility="grow" class="layout-item">
+										<div class="slds-float_right">
+											<template if:false={entry.isDeleted}>
+												<template if:true={entry.isEdit}>
+													<button class="slds-button" title={label.save} onclick={saveEntry} data-id={entry.Id} aria-label={label.save}>
+														<lightning-icon icon-name="utility:save" variant="success" alternative-text={label.saveDescription} size="xx-small"></lightning-icon>
+														<span class="slds-assistive-text">{label.saveDescription}</span>
+													</button>
+													<button class="slds-button" title={label.cancel} onclick={cancelEntry} data-id={entry.Id} aria-label={label.cancel}>
+														<lightning-icon icon-name="utility:clear" variant="error" alternative-text={label.cancelDescription} size="xx-small" ></lightning-icon>
+														<span class="slds-assistive-text">{label.cancelDescription}</span>
+													</button>
+												</template>
+												<template if:false={entry.isEdit}>
+													<template if:false={entry.Completed__c}>
+														<button class="slds-button" title={label.complete} onclick={completeEntry} data-id={entry.Id} aria-label={label.complete}>
+															<lightning-icon icon-name="utility:success" alternative-text={label.completeDescription} size="xx-small" ></lightning-icon>
+															<span class="slds-assistive-text">{label.completeDescription}</span>
+														</button>
+													</template>
+													<template if:true={entry.Completed__c}>
+														<button class="slds-button" title={label.uncomplete} onclick={uncompleteEntry} data-id={entry.Id} aria-label={label.uncomplete}>
+															<lightning-icon icon-name="utility:success" variant="success" alternative-text={label.uncompleteDescription} size="xx-small" ></lightning-icon>
+															<span class="slds-assistive-text">{label.uncompleteDescription}</span>
+														</button>
+													</template>
+													&nbsp;
+													<button class="slds-button" title={label.edit} onclick={editEntry} data-id={entry.Id} aria-label={label.edit}>
+														<lightning-icon icon-name="utility:edit" alternative-text={label.editDescription} size="xx-small" ></lightning-icon>
+														<span class="slds-assistive-text">{label.editDescription}</span>
+													</button>
+													<button class="slds-button" title={label.delete} onclick={deleteEntry} data-id={entry.Id} aria-label={label.delete}>
+														<lightning-icon icon-name="utility:delete" variant="error" alternative-text={label.deleteDescription} size="xx-small" ></lightning-icon>
+														<span class="slds-assistive-text">{label.deleteDescription}</span>
+													</button>
+												</template>
+											</template>
+											<template if:true={entry.isDeleted}>
+												{label.sureToDelete}&nbsp;
+												<button class="slds-button" title={label.confirmDelete} onclick={confirmDeleteEntry} data-id={entry.Id} aria-label={label.confirmDelete}>
+													<lightning-icon icon-name="utility:success" variant="error" alternative-text={label.confirmDeleteDescription} size="xx-small" ></lightning-icon>
+													<span class="slds-assistive-text">{label.confirmDeleteDescription}</span>
+												</button>
+												<button class="slds-button" title={label.cancelDelete} onclick={cancelDeleteEntry} data-id={entry.Id} aria-label={label.cancelDelete}>
+													<lightning-icon icon-name="utility:clear" alternative-text={label.cancelDeleteDescription} size="xx-small" ></lightning-icon>
+													<span class="slds-assistive-text">{label.cancelDeleteDescription}</span>
+												</button>
+											</template>
+										</div>
+									</lightning-layout-item>
+								</template>
+							</template>
+						</lightning-layout>
+					</template>
+					<template if:false={hasData}>
+						<div class="slds-align_absolute-center">
+							<div class="slds-illustration slds-illustration_small" style="width: 60%; height: 60%">
+								<c-illustration header={label.noDataTitle} sub-header={label.noDataSubtitle} type="Desert"></c-illustration>
+							</div>
+						</div>
+					</template>
+				</template>
+			</div>
+		</template>
+	</lightning-card>
+
+</template>

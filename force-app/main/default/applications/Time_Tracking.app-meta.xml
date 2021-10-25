@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0070D2</headerColor>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <label>Time Tracking</label>
+    <navType>Console</navType>
+    <tabs>Timetrack_Category__c</tabs>
+    <tabs>Timetrack_Entry__c</tabs>
+    <uiType>Lightning</uiType>
+    <utilityBar>Time_Tracking_UtilityBar</utilityBar>
+    <workspaceConfig>
+        <mappings>
+            <tab>Timetrack_Category__c</tab>
+        </mappings>
+        <mappings>
+            <tab>Timetrack_Entry__c</tab>
+        </mappings>
+    </workspaceConfig>
+</CustomApplication>

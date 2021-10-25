@@ -1,0 +1,50 @@
+lightning-card {
+    --sds-c-card-shadow: none;
+	--sds-c-card-sizing-border: 0;
+}
+
+.completed {
+	color: green;
+	text-decoration: line-through;
+}
+
+.layout-item {
+	padding-top: 5px;
+	padding-bottom: 10px;
+	border-top: thin solid lightgray;
+}
+
+.a-minutes {
+	text-decoration: none;
+}
+
+.minutes {
+	text-decoration: none;
+	font-size: xx-small;
+	padding: 3px;
+}
+
+.summary {
+	margin: 5px;
+	margin-right: 20px;
+}
+
+.spacer {
+	padding-right: 12px;
+}
+
+.progress {
+    width: 200px;
+    height: 20px;
+    border: thin solid black;
+    position: absolute;
+    z-index: -1;
+}
+.progress:after {
+    content:'\A';
+    position:absolute;
+    background:lightgray;
+    top:0; bottom:0;
+    left:0; 
+    width: var(--percentage);
+}
