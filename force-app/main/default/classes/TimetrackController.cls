@@ -161,6 +161,67 @@ public with sharing class TimetrackController {
 	 * @description:
 	 */
     @AuraEnabled
+	public static Timetrack_Entry__c setTimetrackDescription(Id timetrackEntryId, String description) {
+		try {
+			Timetrack_Entry__c entry = selectTimetrackEntryById(timetrackEntryId);
+			if(entry == null) return null;
+
+			entry.Description__c = description;
+
+			update entry;
+
+			return entry;
+		} catch (Exception e) {
+			System.debug(e.getMessage() + '\r\n' + e.getStackTraceString());
+			throw new AuraHandledException(e.getMessage());
+		}
+	}
+
+	/*
+	 * @description:
+	 */
+    @AuraEnabled
+	public static Timetrack_Entry__c associateTimetrackWithRecord(Id timetrackEntryId, Id recordId) {
+		try {
+			Timetrack_Entry__c entry = selectTimetrackEntryById(timetrackEntryId);
+			if(entry == null) return null;
+
+			entry.Record_Id__c = recordId;
+			if(recordId != null) {
+				if(recordId.getSobjectType() == Case.getSObjectType()) {
+					entry.Case__c = recordId;
+					entry.Account__c = null;
+				}
+				else if(recordId.getSobjectType() == Account.getSObjectType()) {
+					entry.Account__c = recordId;
+					entry.Case__c = null;
+				}
+			}
+			else {
+				entry.Case__c = null;
+				entry.Account__c = null;
+			}
+
+			update entry;
+
+			entry = selectTimetrackEntryById(timetrackEntryId);
+			if(entry.Case__c != null && entry.Case__r.AccountId != null && entry.Account__c == null) {
+				entry.Account__c = entry.Case__r.AccountId;
+				update entry;
+				entry = selectTimetrackEntryById(timetrackEntryId);
+			}
+
+			return entry;
+		} catch (Exception e) {
+			System.debug(e.getMessage() + '\r\n' + e.getStackTraceString());
+			throw new AuraHandledException(e.getMessage());
+		}
+	}
+
+	/*
+	 * @description:
+	 */
+    @AuraEnabled
 	public static void deleteTimetrackEntry(Id timetrackEntryId) {
 		try {
 			Timetrack_Entry__c entry = new Timetrack_Entry__c(
@@ -237,7 +298,14 @@ public with sharing class TimetrackController {
 				Completed__c,
 				Start_Date__c,
 				End_Date__c,
-				Stopwatch_Start__c
+				Stopwatch_Start__c,
+				Description__c,
+				Record_Id__c,
+				Case__c,
+				Case__r.CaseNumber,
+				Case__r.AccountId,
+				Account__c,
+				Account__r.Name
 			from
 				Timetrack_Entry__c
 			where
@@ -260,7 +328,14 @@ public with sharing class TimetrackController {
 				Completed__c,
 				Start_Date__c,
 				End_Date__c,
-				Stopwatch_Start__c
+				Stopwatch_Start__c,
+				Description__c,
+				Record_Id__c,
+				Case__c,
+				Case__r.CaseNumber,
+				Case__r.AccountId,
+				Account__c,
+				Account__r.Name
 			from
 				Timetrack_Entry__c
 			where

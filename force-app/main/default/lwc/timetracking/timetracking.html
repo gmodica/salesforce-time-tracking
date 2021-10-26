@@ -1,5 +1,6 @@
 <template>
     <lightning-card title={label.cardTitle} icon-name="standard:timesheet_entry">
+		<!-- <span class="summary" slot="actions">Record Id: <strong>{currentRecordId}</strong></span> -->
 		<span class="summary" slot="actions">{label.totalTime} <strong>{totalTime}</strong></span>
 		<lightning-button-icon slot="actions" icon-name="utility:add" alternative-text={label.addDescription} tooltip={label.addDescription} title={label.add} onclick={add}></lightning-button-icon>
 		<lightning-button-icon slot="actions" icon-name="utility:refresh" alternative-text={label.refreshDescription} tooltip={label.refreshDescription} title={label.refresh} onclick={refresh}></lightning-button-icon>
@@ -48,7 +49,31 @@
 											<lightning-input type="text" variant="label-hidden" required="true" value={entry._name} placeholder={label.namePlaceholder} onchange={handleNameChange} onkeypress={handleKeyPress} data-id={entry.Id} data-name={entry.Id}></lightning-input>
 										</template>
 										<template if:false={entry.isEdit}>
-											<div class={entry.className}><a href="#" onclick={navigateToRecord} data-id={entry.Id}>{entry.Name}</a></div>
+											<span class={entry.className}><a href="#" onclick={navigateToRecord} data-id={entry.Id}>{entry.Name}</a></span>
+											<div class="slds-float_right">
+												<template if:true={entry.Record_Id__c}>
+													<button class="slds-button" title={entry.linkName} onclick={openLinkedRecord} data-id={entry.Record_Id__c} aria-label={entry.linkName}>
+														<lightning-icon icon-name="utility:info" variant={entry.linkVariant} alternative-text={entry.linkName} title={entry.linkName} size="xx-small"></lightning-icon>
+														<span class="slds-assistive-text">{entry.linkName}</span>
+													</button>
+													<button class="slds-button" title={label.unlink} onclick={unlinkEntry} data-id={entry.Id} aria-label={label.unlink}>
+														<lightning-icon icon-name="utility:remove_link" variant="error" alternative-text={label.unlinkDescription} size="xx-small"></lightning-icon>
+														<span class="slds-assistive-text">{label.unlinkDescription}</span>
+													</button>
+												</template>
+												<template if:false={entry.Record_Id__c}>
+													<template if:true={isLinkingSupported}>
+														<button class="slds-button" title={label.link} onclick={linkEntry} data-id={entry.Id} aria-label={label.link}>
+															<lightning-icon icon-name="utility:link" alternative-text={label.linkDescription} size="xx-small"></lightning-icon>
+															<span class="slds-assistive-text">{label.linkDescription}</span>
+														</button>
+													</template>
+												</template>
+												<button class="slds-button" title={label.note} onclick={toggleNoteModal} data-id={entry.Id} aria-label={label.note}>
+													<lightning-icon icon-name="utility:note" variant={entry.noteVariant} alternative-text={label.noteDescription} size="xx-small"></lightning-icon>
+													<span class="slds-assistive-text">{label.noteDescription}</span>
+												</button>
+											</div>
 										</template>
 									</lightning-layout-item>
 									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
@@ -157,4 +182,29 @@
 		</template>
 	</lightning-card>
 
+	<template if:true={showNoteModal}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title={label.close} data-id={noteEntryId} onclick={toggleNoteModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small" ></lightning-icon>
+                        <span class="slds-assistive-text">{label.close}</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium slds-hyphenate">{label.noteDescription}</h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <lightning-input-rich-text value={note} onchange={handleNoteChange} disabled-categories="INSERT_CONTENT"> </lightning-input-rich-text>
+                </div>
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={toggleNoteModal} data-id={noteEntryId}  title={label.cancel}>{label.cancel}</button>
+                    <button class="slds-button slds-button_brand" onclick={saveNote} data-id={noteEntryId} title={label.save}>{label.save}</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 </template>

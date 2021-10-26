@@ -11,6 +11,8 @@ import addMillisecondsToTimetrackEntry from '@salesforce/apex/TimetrackControlle
 import startTimetrackEntry from '@salesforce/apex/TimetrackController.startTimetrackEntry';
 import stopTimetrackEntry from '@salesforce/apex/TimetrackController.stopTimetrackEntry';
 import resetTimetrackEntry from '@salesforce/apex/TimetrackController.resetTimetrackEntry';
+import setTimetrackDescription from '@salesforce/apex/TimetrackController.setTimetrackDescription';
+import associateTimetrackWithRecord from '@salesforce/apex/TimetrackController.associateTimetrackWithRecord';
 import fontawesome from '@salesforce/resourceUrl/fontawesome';
 
 export default class Timetracking extends NavigationMixin(LightningElement) {
@@ -43,6 +45,13 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		stopDescription: "Stop timer for the entry",
 		reset: "Reset",
 		resetDescription: "Reset entry to 0",
+		note: "Edit Note",
+		noteDescription: "Add/Edit note for entry",
+		link: "Link",
+		linkDescription: "Link entry with current record",
+		unlink: "Unlink",
+		unlinkDescription: "Unlink entry",
+		close: "Close",
 		sureToDelete: "Confirm?",
 		name: "Task Name",
 		namePlaceholder: "Enter the name of the task",
@@ -61,9 +70,15 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		add60Minutes: "Add 60 minutes to the timer",
 		totalTime: "Total time: ",
 		dayView: "Show today's completed tasks",
-		weeklyView: "Show this week's completed tasks"
+		weeklyView: "Show this week's completed tasks",
+		case: "Case",
+		account: "Account"
 	};
 
+	currentRecordId;
+	@api 
+	get recordId() { return this.currentRecordId; }
+	set recordId(value) { this.currentRecordId = value; }
 	@api singleTaskOnlyRunning;
 	isLoading = true;
 	isRendered;
@@ -74,6 +89,9 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 	timerJobId;
 	dayView;
 	weeklyView;
+	showNoteModal;
+	note;
+	noteEntryId;
 
 	renderedCallback() {
 		if (this.isRendered) {
@@ -522,7 +540,10 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			End_Date__c: entry ? entry.End_Date__c : null,
 			Duration__c: entry ? entry.Duration__c : 0,
 			Stopwatch_Start__c: entry ? entry.Stopwatch_Start__c : null,
+			Description__c: entry ? entry.Description__c : null,
+			Record_Id__c: entry ? entry.Record_Id__c : null,
 			categoryName: entry ? entry.Category__r.Name : null,
+			linkName : entry ? (entry.Case__c ? `${this.label.case}: ${entry.Case__r.CaseNumber}` : (entry.Account__c ? `${this.label.account}: ${entry.Account__r.Name}` : null)) : null,
 			_name: entry ? entry.Category__r.Name : null,
 			_categoryId: entry ? entry.Category__c : category?.Id,
 			_startEpoch: entry ? new Date(entry.Stopwatch_Start__c).getTime() : null,
@@ -535,7 +556,9 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			elapsed: this.formatMilliseconds(entry ? entry.Duration__c : 0),
 			isToday: this.isToday(entry ? entry.End_Date__c : null),
 			isThisWeek: this.isThisWeek(entry ? entry.End_Date__c : null),
-			get hidden() { return (this.isToday || this.isThisWeek) && !((this.isToday && that.dayView) || (this.isThisWeek && that.weeklyView))}
+			get hidden() { return (this.isToday || this.isThisWeek) && !((this.isToday && that.dayView) || (this.isThisWeek && that.weeklyView))},
+			get noteVariant() {return this.Description__c ? 'warning' : ''},
+			get linkVariant() {return this.Record_Id__c === that.currentRecordId ? 'success' : ''}
 		};
 
 		return newEntry;
@@ -628,5 +651,99 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		const date = new Date(epochDate);
 		const today = new Date();
 		return date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear();
+	}
+
+	toggleNoteModal(event) {
+		const id = event.currentTarget.dataset.id;
+		const entry = this.data.find(entry => entry.Id === id);
+		if(!entry) return;
+
+		this.showNoteModal = !this.showNoteModal;
+
+		if(this.showNoteModal) {
+			this.note = entry.Description__c;
+			this.noteEntryId = entry.Id;
+		}
+		else {
+			this.note = null;
+			this.noteEntryId = null;
+		}
+	}
+
+	async saveNote(event) {
+		const id = event.currentTarget.dataset.id;
+		const entry = this.data.find(entry => entry.Id === id);
+		if(!entry) return;
+
+		try {
+			const newEntry = await setTimetrackDescription({timetrackEntryId: id, description: this.note});
+
+			entry.Description__c = newEntry.Description__c;
+			entry.elapsed = this.formatMilliseconds(entry.Duration__c);
+
+			this.note = null;
+			this.noteEntryId = null;
+			this.showNoteModal = false;
+		}
+		catch(e) {
+			console.error(e);
+			this.showToast(this.label.error, e.message, 'error');
+		}
+	}
+
+	handleNoteChange(event) {
+		this.note = event.target.value;
+	}
+
+	get isLinkingSupported() {
+		return this.currentRecordId && (this.currentRecordId.startsWith('001') || this.currentRecordId.startsWith('500'));
+	}
+
+	async linkEntry(event) {
+		const id = event.currentTarget.dataset.id;
+		const entry = this.data.find(entry => entry.Id === id);
+		if(!entry) return;
+
+		try {
+			const newEntry = await associateTimetrackWithRecord({timetrackEntryId: id, recordId: this.currentRecordId});
+
+			entry.Record_Id__c = newEntry.Record_Id__c;
+			entry.linkName = newEntry.Case__c ? `Case: ${newEntry.Case__r.CaseNumber}` : (newEntry.Account__c ? `Account: ${newEntry.Account__r.Name}` : null);
+		}
+		catch(e) {
+			console.error(e);
+			this.showToast(this.label.error, e.message, 'error');
+		}
+	}
+
+	async unlinkEntry(event) {
+		const id = event.currentTarget.dataset.id;
+		const entry = this.data.find(entry => entry.Id === id);
+		if(!entry) return;
+
+		try {
+			const newEntry = await associateTimetrackWithRecord({timetrackEntryId: id, recordId: null});
+
+			entry.Record_Id__c = newEntry.Record_Id__c;
+			entry.linkName = null;
+		}
+		catch(e) {
+			console.error(e);
+			this.showToast(this.label.error, e.message, 'error');
+		}
+	}
+
+	openLinkedRecord(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		const id = event.currentTarget.dataset.id;
+
+		this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+			attributes: {
+				recordId: id,
+				actionName: 'view'
+			}
+        });
 	}
 }

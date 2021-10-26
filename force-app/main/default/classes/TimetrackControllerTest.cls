@@ -250,6 +250,88 @@ private without sharing class TimetrackControllerTest {
 	}
 
 	@isTest
+	private static void testSetTimetrackDescription() {
+		Id categoryId = [select Id from Timetrack_Category__c where Name = 'Category 1'][0].Id;
+		Timetrack_Entry__c entry = new Timetrack_Entry__c(Name = 'Test 1', Category__c = categoryId, Duration__c = 1000, Stopwatch_Start__c = 2000);
+		insert entry;
+
+		Test.startTest();
+
+		Timetrack_Entry__c updatedEntry = TimetrackController.setTimetrackDescription(entry.Id, 'Some description');
+
+		Test.stopTest();
+
+		System.assertNotEquals(null, entry);
+		System.assertEquals(entry.Id, updatedEntry.Id);
+		System.assertEquals('Some description', updatedEntry.Description__c);
+
+		List<Timetrack_Entry__c> entries = [select Id,Description__c from Timetrack_Entry__c where Id = :entry.Id];
+		System.assertEquals(1, entries.size());
+
+		System.assertEquals('Some description', entries[0].Description__c);
+	}
+
+	@isTest
+	private static void testAssociateTimetrackWithCaseRecord() {
+		Id categoryId = [select Id from Timetrack_Category__c where Name = 'Category 1'][0].Id;
+		Timetrack_Entry__c entry = new Timetrack_Entry__c(Name = 'Test 1', Category__c = categoryId, Duration__c = 1000, Stopwatch_Start__c = 2000);
+		insert entry;
+
+		Account a = new Account(Name = 'Test');
+		insert a;
+		Case c = new Case(AccountId = a.Id, Subject = 'Test');
+		insert c;
+
+		Test.startTest();
+
+		Timetrack_Entry__c updatedEntry = TimetrackController.associateTimetrackWithRecord(entry.Id, c.Id);
+
+		Test.stopTest();
+
+		System.assertNotEquals(null, entry);
+		System.assertEquals(entry.Id, updatedEntry.Id);
+		System.assertEquals(c.Id, updatedEntry.Record_Id__c);
+		System.assertEquals(c.Id, updatedEntry.Case__c);
+		System.assertEquals(a.Id, updatedEntry.Account__c);
+
+		List<Timetrack_Entry__c> entries = [select Id,Record_Id__c,Case__c,Account__c from Timetrack_Entry__c where Id = :entry.Id];
+		System.assertEquals(1, entries.size());
+
+		System.assertEquals(c.Id, entries[0].Record_Id__c);
+		System.assertEquals(c.Id, entries[0].Case__c);
+		System.assertEquals(a.Id, entries[0].Account__c);
+	}
+
+	@isTest
+	private static void testAssociateTimetrackWithAccountRecord() {
+		Id categoryId = [select Id from Timetrack_Category__c where Name = 'Category 1'][0].Id;
+		Timetrack_Entry__c entry = new Timetrack_Entry__c(Name = 'Test 1', Category__c = categoryId, Duration__c = 1000, Stopwatch_Start__c = 2000);
+		insert entry;
+
+		Account a = new Account(Name = 'Test');
+		insert a;
+
+		Test.startTest();
+
+		Timetrack_Entry__c updatedEntry = TimetrackController.associateTimetrackWithRecord(entry.Id, a.Id);
+
+		Test.stopTest();
+
+		System.assertNotEquals(null, entry);
+		System.assertEquals(entry.Id, updatedEntry.Id);
+		System.assertEquals(a.Id, updatedEntry.Record_Id__c);
+		System.assertEquals(null, updatedEntry.Case__c);
+		System.assertEquals(a.Id, updatedEntry.Account__c);
+
+		List<Timetrack_Entry__c> entries = [select Id,Record_Id__c,Case__c,Account__c from Timetrack_Entry__c where Id = :entry.Id];
+		System.assertEquals(1, entries.size());
+
+		System.assertEquals(a.Id, entries[0].Record_Id__c);
+		System.assertEquals(null, entries[0].Case__c);
+		System.assertEquals(a.Id, entries[0].Account__c);
+	}
+
+	@isTest
 	private static void testDeleteTimetrackEntry() {
 		Id categoryId = [select Id from Timetrack_Category__c where Name = 'Category 1'][0].Id;
 		Timetrack_Entry__c entry = new Timetrack_Entry__c(Name = 'Test 1', Category__c = categoryId, Duration__c = 1000, Stopwatch_Start__c = 2000);

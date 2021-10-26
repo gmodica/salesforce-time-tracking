@@ -33,7 +33,7 @@
                     <type>decorator</type>
                     <value>900</value>
                 </componentInstanceProperties>
-                <componentName>timetracking</componentName>
+                <componentName>TimetrackingContainer</componentName>
             </componentInstance>
         </itemInstances>
         <name>utilityItems</name>
