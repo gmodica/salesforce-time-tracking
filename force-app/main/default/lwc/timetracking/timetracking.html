@@ -32,10 +32,10 @@
 							<lightning-layout-item size="1" padding="around-small" flexibility="grow">
 								<strong>{label.createdDate}</strong>
 							</lightning-layout-item>
-							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
+							<lightning-layout-item size="4" padding="around-small" flexibility="grow">
 								<strong>{label.name}</strong>
 							</lightning-layout-item>
-							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
+							<lightning-layout-item size="2" padding="around-small" flexibility="grow">
 								<strong>{label.category}</strong>
 							</lightning-layout-item>
 							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
@@ -51,7 +51,7 @@
 										<!-- <lightning-relative-date-time value={entry.CreatedDate}></lightning-relative-date-time> -->
 										<small><lightning-formatted-date-time value={entry.CreatedDate} year="2-digit" month="2-digit" day="2-digit"></lightning-formatted-date-time></small>
 									</lightning-layout-item>
-									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
+									<lightning-layout-item key={entry.Id} size="4" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<template if:true={entry.isEdit}>
 											<lightning-input type="text" max-length="250" variant="label-hidden" required="true" value={entry._name} placeholder={label.namePlaceholder} onchange={handleNameChange} onkeypress={handleKeyPress} data-id={entry.Id} data-name={entry.Id}></lightning-input>
 										</template>
@@ -83,7 +83,7 @@
 											</div>
 										</template>
 									</lightning-layout-item>
-									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
+									<lightning-layout-item key={entry.Id} size="2" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<template if:true={entry.isEdit}>
 											<lightning-combobox name="status" variant="label-hidden" value={entry._categoryId} onchange={handleCategoryChange} options={categoriesOptions} data-id={entry.Id} ></lightning-combobox>
 										</template>
