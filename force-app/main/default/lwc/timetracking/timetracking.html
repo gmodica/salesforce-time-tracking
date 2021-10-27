@@ -29,7 +29,10 @@
 					<template if:true={hasData}>
 
 						<lightning-layout multiple-rows="true">
-							<lightning-layout-item size="4" padding="around-small" flexibility="grow">
+							<lightning-layout-item size="1" padding="around-small" flexibility="grow">
+								<strong>{label.createdDate}</strong>
+							</lightning-layout-item>
+							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
 								<strong>{label.name}</strong>
 							</lightning-layout-item>
 							<lightning-layout-item size="3" padding="around-small" flexibility="grow">
@@ -44,9 +47,13 @@
 
 							<template for:each={data} for:item="entry">
 								<template if:false={entry.hidden}>
-									<lightning-layout-item key={entry.Id} size="4" padding="horizontal-small" flexibility="grow" class="layout-item">
+									<lightning-layout-item key={entry.Id} size="1" padding="horizontal-small" flexibility="grow" class="layout-item">
+										<!-- <lightning-relative-date-time value={entry.CreatedDate}></lightning-relative-date-time> -->
+										<small><lightning-formatted-date-time value={entry.CreatedDate} year="2-digit" month="2-digit" day="2-digit"></lightning-formatted-date-time></small>
+									</lightning-layout-item>
+									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<template if:true={entry.isEdit}>
-											<lightning-input type="text" variant="label-hidden" required="true" value={entry._name} placeholder={label.namePlaceholder} onchange={handleNameChange} onkeypress={handleKeyPress} data-id={entry.Id} data-name={entry.Id}></lightning-input>
+											<lightning-input type="text" max-length="250" variant="label-hidden" required="true" value={entry._name} placeholder={label.namePlaceholder} onchange={handleNameChange} onkeypress={handleKeyPress} data-id={entry.Id} data-name={entry.Id}></lightning-input>
 										</template>
 										<template if:false={entry.isEdit}>
 											<span class={entry.className}><a href="#" onclick={navigateToRecord} data-id={entry.Id}>{entry.Name}</a></span>

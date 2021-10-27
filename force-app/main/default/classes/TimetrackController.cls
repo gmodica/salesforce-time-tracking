@@ -292,6 +292,7 @@ public with sharing class TimetrackController {
 			select
 				Id,
 				Name,
+				CreatedDate,
 				Category__c,
 				Category__r.Name,
 				Duration__c,
@@ -311,6 +312,8 @@ public with sharing class TimetrackController {
 			where
 				OwnerId = :UserInfo.getUserId() and
 				(Completed__c = false or End_Date__c = TODAY or End_Date__c = THIS_WEEK)
+			order by
+				CreatedDate
 		];
 	}
 
@@ -322,6 +325,7 @@ public with sharing class TimetrackController {
 			select
 				Id,
 				Name,
+				CreatedDate,
 				Category__c,
 				Category__r.Name,
 				Duration__c,

@@ -14,6 +14,7 @@ import resetTimetrackEntry from '@salesforce/apex/TimetrackController.resetTimet
 import setTimetrackDescription from '@salesforce/apex/TimetrackController.setTimetrackDescription';
 import associateTimetrackWithRecord from '@salesforce/apex/TimetrackController.associateTimetrackWithRecord';
 import fontawesome from '@salesforce/resourceUrl/fontawesome';
+import { reduceErrors } from 'c/ldsUtils';
 
 export default class Timetracking extends NavigationMixin(LightningElement) {
 	label = {
@@ -72,7 +73,8 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		dayView: "Show today's completed tasks",
 		weeklyView: "Show this week's completed tasks",
 		case: "Case",
-		account: "Account"
+		account: "Account",
+		createdDate: "Date"
 	};
 
 	currentRecordId;
@@ -248,13 +250,14 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 
 			entry.Id = newEntry.Id;
 			entry.Start_Date__c = newEntry.Start_Date__c;
+			entry.CreatedDate = newEntry.CreatedDate;
 			entry.isEdit = false;
 			entry.isNew = false;
 			entry.isModified = false;
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -290,7 +293,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -389,14 +392,14 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			entry.Stopwatch_Start__c = newEntry.Stopwatch_Start__c;
 			entry.Duration__c = newEntry.Duration__c;
 			entry.elapsed = this.formatMilliseconds(entry.Duration__c);
-			entry.isToday = this.isToday(entry.End_Date__c);
-			entry.isThisWeek = this.isThisWeek(entry.End_Date__c);
+			entry.isToday = this.isToday(entry.CreatedDate);
+			entry.isThisWeek = this.isThisWeek(entry.CreatedDate);
 
 			this.manageTimer();
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -424,7 +427,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -446,7 +449,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -465,14 +468,14 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			entry.Stopwatch_Start__c = newEntry.Stopwatch_Start__c;
 			entry.Duration__c = newEntry.Duration__c;
 			entry.elapsed = this.formatMilliseconds(entry.Duration__c);
-			entry.isToday = this.isToday(entry.End_Date__c);
-			entry.isThisWeek = this.isThisWeek(entry.End_Date__c);
+			entry.isToday = this.isToday(entry.CreatedDate);
+			entry.isThisWeek = this.isThisWeek(entry.CreatedDate);
 
 			this.manageTimer();
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -486,12 +489,12 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 
 			entry.Completed__c = newEntry.Completed__c;
 			entry.End_Date__c = newEntry.End_Date__c;
-			entry.isToday = this.isToday(entry.End_Date__c);
-			entry.isThisWeek = this.isThisWeek(entry.End_Date__c);
+			entry.isToday = this.isToday(entry.CreatedDate);
+			entry.isThisWeek = this.isThisWeek(entry.CreatedDate);
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -507,7 +510,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -534,6 +537,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		const newEntry = {
 			Id: entry ? entry.Id : this.generateUUID(),
 			Name: entry ? entry.Name : null,
+			CreatedDate: entry ? entry.CreatedDate : null,
 			Category__c: entry ? entry.Category__c : category?.Id,
 			Completed__c: entry ? entry.Completed__c : false,
 			Start_Date__c: entry ? entry.Start_Date__c : null,
@@ -554,9 +558,9 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			isRunning: entry ? entry.Stopwatch_Start__c : false,
 			get className() { return this.Completed__c ? 'completed' : ''},
 			elapsed: this.formatMilliseconds(entry ? entry.Duration__c : 0),
-			isToday: this.isToday(entry ? entry.End_Date__c : null),
-			isThisWeek: this.isThisWeek(entry ? entry.End_Date__c : null),
-			get hidden() { return (this.isToday || this.isThisWeek) && !((this.isToday && that.dayView) || (this.isThisWeek && that.weeklyView))},
+			isToday: this.isToday(entry ? entry.CreatedDate : null),
+			isThisWeek: this.isThisWeek(entry ? entry.CreatedDate : null),
+			get hidden() { return this.Completed__c && (this.isToday || this.isThisWeek) && !((this.isToday && that.dayView) || (this.isThisWeek && that.weeklyView))},
 			get noteVariant() {return this.Description__c ? 'warning' : ''},
 			get linkVariant() {return this.Record_Id__c === that.currentRecordId ? 'success' : ''}
 		};
@@ -687,7 +691,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -712,7 +716,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
@@ -729,7 +733,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 		catch(e) {
 			console.error(e);
-			this.showToast(this.label.error, e.message, 'error');
+			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
 
