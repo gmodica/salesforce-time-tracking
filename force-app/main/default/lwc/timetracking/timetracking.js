@@ -254,6 +254,10 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			entry.isEdit = false;
 			entry.isNew = false;
 			entry.isModified = false;
+
+			if(this.isLinkingSupported) {
+				await this.linkEntry({currentTarget: { dataset: { id: entry.Id}}});
+			}
 		}
 		catch(e) {
 			console.error(e);
@@ -513,7 +517,6 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			this.showToast(this.label.error, reduceErrors(e)[0], 'error');
 		}
 	}
-
 
 	handleNameChange(event) {
 		const id = event.currentTarget.dataset.id;
