@@ -65,10 +65,16 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		error: "Error",
 		completed: "Completed",
 		saveAllFirst: "You have some pending items to save. Please save all work before refreshing",
+		add5Minutes: "Add 5 minutes to the timer",
 		add15Minutes: "Add 15 minutes to the timer",
 		add30Minutes: "Add 30 minutes to the timer",
 		add45Minutes: "Add 45 minutes to the timer",
 		add60Minutes: "Add 60 minutes to the timer",
+		subtract5Minutes: "Subtract 5 minutes from the timer",
+		subtract15Minutes: "Subtract 15 minutes from the timer",
+		subtract30Minutes: "Subtract 30 minutes from the timer",
+		subtract45Minutes: "Subtract 45 minutes from the timer",
+		subtract60Minutes: "Subtract 60 minutes from the timer",
 		totalTime: "Total time: ",
 		dayView: "Show today's completed tasks",
 		weeklyView: "Show this week's completed tasks",
@@ -323,6 +329,13 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		}
 	}
 
+	async add5Minutes(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		const id = event.currentTarget.dataset.id;
+		await this.addMillisecondsEntry(id, 5 * 60 * 1000);
+	}
+
 	async add15Minutes(event) {
 		event.preventDefault();
 		event.stopPropagation();
@@ -349,6 +362,13 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		event.stopPropagation();
 		const id = event.currentTarget.dataset.id;
 		await this.addMillisecondsEntry(id, 60 * 60 * 1000);
+	}
+
+	async subtract5Minutes(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		const id = event.currentTarget.dataset.id;
+		await this.addMillisecondsEntry(id, -5 * 60 * 1000);
 	}
 
 	async subtract15Minutes(event) {

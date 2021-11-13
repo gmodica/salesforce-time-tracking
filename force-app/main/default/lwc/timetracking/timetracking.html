@@ -91,38 +91,84 @@
 											<div class={entry.className}>{entry.categoryName}</div>
 										</template>
 									</lightning-layout-item>
+
 									<lightning-layout-item key={entry.Id} size="3" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<div class="slds-float_right">
-											<template if:false={entry.isEdit}>
-												<template if:false={entry.isRunning}>
-													<a href='#' class="a-minutes" onclick={resetEntry} title={label.reset} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">0</span></a>
-													<a href='#' class="a-minutes" onclick={add15Minutes} title={label.add15Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+15</span></a>
-													<a href='#' class="a-minutes" onclick={add30Minutes} title={label.add30Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+30</span></a>
-													<a href='#' class="a-minutes" onclick={add45Minutes} title={label.add45Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+45</span></a>
-													<a href='#' class="a-minutes" onclick={add60Minutes} title={label.add60Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+1h</span></a>
-													&nbsp;
-													<template if:false={entry.Completed__c}>
-														<button class="slds-button" title={label.start} onclick={startEntry} data-id={entry.Id} aria-label={label.start}>
-															<lightning-icon icon-name="utility:play" alternative-text={label.startDescription} size="xx-small"></lightning-icon>
-															<span class="slds-assistive-text">{label.startDescription}</span>
-														</button>
-													</template>
-													<template if:true={entry.Completed__c}>
-														<span class="spacer">&nbsp;</span>
+											<lightning-layout multiple-rows="true">
+												<lightning-layout-item size="5" padding="around-small" flexibility="grow" style="padding: 0">
+													<div class="slds-float_right">
+														<template if:false={entry.isEdit}>
+															<template if:true={entry.isRunning}>
+																<button class="slds-button" title={label.stop} onclick={stopEntry} data-id={entry.Id} aria-label={label.stop}>
+																	<lightning-icon icon-name="utility:stop" alternative-text={label.stopDescription} size="xx-small"></lightning-icon>
+																	<span class="slds-assistive-text">{label.stopDescription}</span>
+																</button>
+																<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+															</template>
+															<template if:false={entry.isRunning}>
+																<template if:false={entry.Completed__c}>
+																	<button class="slds-button" title={label.start} onclick={startEntry} data-id={entry.Id} aria-label={label.start}>
+																		<lightning-icon icon-name="utility:play" alternative-text={label.startDescription} size="xx-small"></lightning-icon>
+																		<span class="slds-assistive-text">{label.startDescription}</span>
+																	</button>
+																</template>
+																<template if:true={entry.Completed__c}>
+																	<span class="spacer">&nbsp;</span>
+																</template>
+															</template>
+														</template>
+													</div>
+												</lightning-layout-item>
+
+												<lightning-layout-item size="7" padding="around-small" flexibility="grow" style="padding: 0">
+													<div class="slds-float_right">
+														<span class={entry.className}>&nbsp;{entry.elapsed}</span>
+													</div>
+												</lightning-layout-item>
+
+												<template if:false={entry.isEdit}>
+													<template if:false={entry.isRunning}>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={resetEntry} title={label.reset} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">0</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={add5Minutes} title={label.add5Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+5</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={add15Minutes} title={label.add15Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+15</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={add30Minutes} title={label.add30Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+30</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={add45Minutes} title={label.add45Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+45</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={add60Minutes} title={label.add60Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">+1h</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={subtract5Minutes} title={label.subtract5Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">-5</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={subtract15Minutes} title={label.subtract15Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">-15</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={subtract30Minutes} title={label.subtract30Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">-30</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={subtract45Minutes} title={label.subtract45Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">-45</span></a>
+														</lightning-layout-item>
+														<lightning-layout-item size="2" padding="around-small" flexibility="grow" style="padding: 0">
+															<a href='#' class="a-minutes" onclick={subtract60Minutes} title={label.subtract60Minutes} data-id={entry.Id}><span class="slds-badge slds-badge_lightest minutes">-1h</span></a>
+														</lightning-layout-item>
 													</template>
 												</template>
-												<template if:true={entry.isRunning}>
-													<!-- <lightning-icon icon-name="utility:spinner" size="xx-small"></lightning-icon> -->
-													<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-													<button class="slds-button" title={label.stop} onclick={stopEntry} data-id={entry.Id} aria-label={label.stop}>
-														<lightning-icon icon-name="utility:stop" alternative-text={label.stopDescription} size="xx-small"></lightning-icon>
-														<span class="slds-assistive-text">{label.stopDescription}</span>
-													</button>
-												</template>
-											</template>
-											<span class={entry.className}>&nbsp;{entry.elapsed}</span>
+											</lightning-layout>
 										</div>
 									</lightning-layout-item>
+
 									<lightning-layout-item key={entry.Id} size="2" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<div class="slds-float_right">
 											<template if:false={entry.isDeleted}>
