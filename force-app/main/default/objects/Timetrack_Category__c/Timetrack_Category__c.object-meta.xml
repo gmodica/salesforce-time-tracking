@@ -162,6 +162,7 @@
     <pluralLabel>Time Track Categories</pluralLabel>
     <searchLayouts>
         <searchResultsAdditionalFields>Description__c</searchResultsAdditionalFields>
+		<searchResultsAdditionalFields>Order__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Disabled__c</searchResultsAdditionalFields>
     </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>

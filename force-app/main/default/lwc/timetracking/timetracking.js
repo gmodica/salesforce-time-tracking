@@ -76,11 +76,14 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		subtract45Minutes: "Subtract 45 minutes from the timer",
 		subtract60Minutes: "Subtract 60 minutes from the timer",
 		totalTime: "Total time: ",
-		dayView: "Show today's completed tasks",
-		weeklyView: "Show this week's completed tasks",
+		dayView: "Show today's tasks",
+		yesterdayView: "Show yesterday's tasks",
+		weeklyView: "Show this week's tasks",
+		monthlyView: "Show this month's tasks",
 		case: "Case",
 		account: "Account",
-		createdDate: "Date"
+		createdDate: "Date",
+		showCompleted: "View/Hide completed tasks"
 	};
 
 	currentRecordId;
@@ -95,9 +98,12 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 	@track data = [];
 	error;
 	timerJobId;
-	dayView;
+	dayView = true;
+	yesterdayView;
 	weeklyView;
+	monthlyView;
 	showNoteModal;
+	showCompleted = true;
 	note;
 	noteEntryId;
 
@@ -217,6 +223,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 	}
 
 	refresh() {
+		console.log('refreshing');
 		if(this.hasPendingChanges) {
 			this.showToast(this.label.save, this.label.saveAllFirst, 'warning');
 			return;
@@ -233,7 +240,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		const defaultCategory = this.timetrackInfo.categories?.[0];
 
 		const entry = this.buildEntry(null, defaultCategory);
-		this.data.push(entry);
+		this.data.unshift(entry);
 	}
 
 	async saveEntry(event) {
@@ -252,14 +259,26 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 
 		try {
 			const entryId = entry.isNew ? null : entry.Id;
-			const newEntry = await saveTimetrackEntry({timetrackEntryId: entryId, name: entry.Name, categoryId: entry.Category__c});
+
+			if(entry.isNew && this.yesterdayView) {
+				const yesterday = new Date();
+				yesterday.setDate(yesterday.getDate() - 1);
+				entry.Date__c = yesterday;
+			}
+
+			const newEntry = await saveTimetrackEntry({timetrackEntryId: entryId, name: entry.Name, categoryId: entry.Category__c, entryDate: entry.Date__c});
 
 			entry.Id = newEntry.Id;
 			entry.Start_Date__c = newEntry.Start_Date__c;
 			entry.CreatedDate = newEntry.CreatedDate;
+			entry.Date__c = newEntry.Date__c;
 			entry.isEdit = false;
 			entry.isNew = false;
 			entry.isModified = false;
+			entry.isToday = this.isToday(entry.Date__c);
+			entry.isYesterday = this.isYesterday(entry.Date__c);
+			entry.isThisWeek = this.isThisWeek(entry.Date__c);
+			entry.isThisMonth = this.isThisMonth(entry.Date__c);
 
 			if(this.isLinkingSupported) {
 				await this.linkEntry({currentTarget: { dataset: { id: entry.Id}}});
@@ -416,8 +435,10 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			entry.Stopwatch_Start__c = newEntry.Stopwatch_Start__c;
 			entry.Duration__c = newEntry.Duration__c;
 			entry.elapsed = this.formatMilliseconds(entry.Duration__c);
-			entry.isToday = this.isToday(entry.CreatedDate);
-			entry.isThisWeek = this.isThisWeek(entry.CreatedDate);
+			entry.isToday = this.isToday(entry.Date__c);
+			entry.isYesterday = this.isYesterday(entry.Date__c);
+			entry.isThisWeek = this.isThisWeek(entry.Date__c);
+			entry.isThisMonth = this.isThisMonth(entry.Date__c);
 
 			this.manageTimer();
 		}
@@ -492,8 +513,10 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			entry.Stopwatch_Start__c = newEntry.Stopwatch_Start__c;
 			entry.Duration__c = newEntry.Duration__c;
 			entry.elapsed = this.formatMilliseconds(entry.Duration__c);
-			entry.isToday = this.isToday(entry.CreatedDate);
-			entry.isThisWeek = this.isThisWeek(entry.CreatedDate);
+			entry.isToday = this.isToday(entry.Date__c);
+			entry.isYesterday = this.isYesterday(entry.Date__c);
+			entry.isThisWeek = this.isThisWeek(entry.Date__c);
+			entry.isThisMonth = this.isThisMonth(entry.Date__c);
 
 			this.manageTimer();
 		}
@@ -513,8 +536,10 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 
 			entry.Completed__c = newEntry.Completed__c;
 			entry.End_Date__c = newEntry.End_Date__c;
-			entry.isToday = this.isToday(entry.CreatedDate);
-			entry.isThisWeek = this.isThisWeek(entry.CreatedDate);
+			entry.isToday = this.isToday(entry.Date__c);
+			entry.isYesterday = this.isYesterday(entry.Date__c);
+			entry.isThisWeek = this.isThisWeek(entry.Date__c);
+			entry.isThisMonth = this.isThisMonth(entry.Date__c);
 		}
 		catch(e) {
 			console.error(e);
@@ -561,6 +586,7 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			Id: entry ? entry.Id : this.generateUUID(),
 			Name: entry ? entry.Name : null,
 			CreatedDate: entry ? entry.CreatedDate : null,
+			Date__c: entry ? entry.Date__c : null,
 			Category__c: entry ? entry.Category__c : category?.Id,
 			Completed__c: entry ? entry.Completed__c : false,
 			Start_Date__c: entry ? entry.Start_Date__c : null,
@@ -581,9 +607,11 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 			isRunning: entry ? entry.Stopwatch_Start__c : false,
 			get className() { return this.Completed__c ? 'completed' : ''},
 			elapsed: this.formatMilliseconds(entry ? entry.Duration__c : 0),
-			isToday: this.isToday(entry ? entry.CreatedDate : null),
-			isThisWeek: this.isThisWeek(entry ? entry.CreatedDate : null),
-			get hidden() { return this.Completed__c && (this.isToday || this.isThisWeek) && !((this.isToday && that.dayView) || (this.isThisWeek && that.weeklyView))},
+			isToday: this.isToday(entry ? entry.Date__c : null),
+			isYesterday: this.isYesterday(entry ? entry.Date__c : null),
+			isThisWeek: this.isThisWeek(entry ? entry.Date__c : null),
+			isThisMonth: this.isThisMonth(entry ? entry.Date__c : null),
+			get hidden() { return ((this.Completed__c && !that.showCompleted) || !(this.isNew || (this.isToday && that.dayView) || (this.isYesterday && that.yesterdayView) || (this.isThisWeek && that.weeklyView) || (this.isThisMonth && that.monthlyView)))},
 			get noteVariant() {return this.Description__c ? 'warning' : ''},
 			get linkVariant() {return this.Record_Id__c === that.currentRecordId ? 'success' : ''}
 		};
@@ -644,13 +672,35 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
     }
 
 	handleDayView() {
-		this.dayView = !this.dayView;
+		if(!this.dayView) this.dayView = true;
+		if(this.dayView && this.yesterdayView) this.yesterdayView = false;
 		if(this.dayView && this.weeklyView) this.weeklyView = false;
+		if(this.dayView && this.monthlyView) this.monthlyView = false;
+	}
+
+	handleYesterdayView() {
+		if(!this.yesterdayView) this.yesterdayView = true;
+		if(this.yesterdayView && this.dayView) this.dayView = false;
+		if(this.yesterdayView && this.weeklyView) this.weeklyView = false;
+		if(this.yesterdayView && this.monthlyView) this.monthlyView = false;
 	}
 
 	handleWeeklyView() {
-		this.weeklyView = !this.weeklyView;
+		if(!this.weeklyView) this.weeklyView = true;
 		if(this.weeklyView && this.dayView) this.dayView = false;
+		if(this.weeklyView && this.yesterdayView) this.yesterdayView = false;
+		if(this.weeklyView && this.monthlyView) this.monthlyView = false;
+	}
+
+	handleMonthlyView() {
+		if(!this.monthlyView) this.monthlyView = true;
+		if(this.monthlyView && this.dayView) this.dayView = false;
+		if(this.monthlyView && this.yesterdayView) this.yesterdayView = false;
+		if(this.monthlyView && this.weeklyView) this.weeklyView = false;
+	}
+
+	handleShowCompletedView() {
+		this.showCompleted = !this.showCompleted;
 	}
 
 	isThisWeek(epochDate) {
@@ -673,11 +723,32 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		return date >= startOfThisWeek && date < startOfNextWeek;
 	}
 
+	isThisMonth(epochDate) {
+		if(!epochDate) return false;
+		const date = new Date(epochDate);
+
+		const today = new Date();
+
+		return date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear();
+	}
+
 	isToday(epochDate) {
 		if(!epochDate) return false;
 		const date = new Date(epochDate);
+
 		const today = new Date();
+
 		return date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear();
+	}
+
+	isYesterday(epochDate) {
+		if(!epochDate) return false;
+		const date = new Date(epochDate);
+
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1)
+
+		return date.getDate() == yesterday.getDate() && date.getMonth() == yesterday.getMonth() && date.getFullYear() == yesterday.getFullYear();
 	}
 
 	toggleNoteModal(event) {

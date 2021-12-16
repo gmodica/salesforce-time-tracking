@@ -24,7 +24,7 @@ private without sharing class TimetrackControllerTest {
 
 		Test.startTest();
 
-		Timetrack_Entry__c entry = TimetrackController.saveTimetrackEntry(null, 'Test 1', categoryId);
+		Timetrack_Entry__c entry = TimetrackController.saveTimetrackEntry(null, 'Test 1', categoryId, null);
 
 		Test.stopTest();
 
@@ -49,7 +49,7 @@ private without sharing class TimetrackControllerTest {
 
 		Test.startTest();
 
-		Timetrack_Entry__c updatedEntry = TimetrackController.saveTimetrackEntry(entry.Id, 'Test 2', category2Id);
+		Timetrack_Entry__c updatedEntry = TimetrackController.saveTimetrackEntry(entry.Id, 'Test 2', category2Id, null);
 
 		Test.stopTest();
 

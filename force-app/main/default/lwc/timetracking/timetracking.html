@@ -6,7 +6,11 @@
 		<lightning-button-icon slot="actions" icon-name="utility:refresh" alternative-text={label.refreshDescription} tooltip={label.refreshDescription} title={label.refresh} onclick={refresh}></lightning-button-icon>
 		<span slot="actions">&nbsp;</span>
 		<lightning-button-icon-stateful slot="actions" icon-name="utility:dayview" selected={dayView} onclick={handleDayView} alternative-text={label.dayView}></lightning-button-icon-stateful>
+		<lightning-button-icon-stateful slot="actions" icon-name="utility:dayview" selected={yesterdayView} onclick={handleYesterdayView} alternative-text={label.yesterdayView}></lightning-button-icon-stateful>
 		<lightning-button-icon-stateful slot="actions" icon-name="utility:weeklyview" selected={weeklyView} onclick={handleWeeklyView} alternative-text={label.weeklyView}></lightning-button-icon-stateful>
+		<lightning-button-icon-stateful slot="actions" icon-name="utility:monthlyview" selected={monthlyView} onclick={handleMonthlyView} alternative-text={label.monthlyView}></lightning-button-icon-stateful>
+		<span slot="actions">&nbsp;</span>
+		<lightning-button-icon-stateful slot="actions" icon-name="utility:success" selected={showCompleted} onclick={handleShowCompletedView} alternative-text={label.showCompleted}></lightning-button-icon-stateful>
 		<template if:true={isLoading}>
 			<lightning-spinner alternative-text={label.loading} size="small" variant="brand"></lightning-spinner>
 			<div class="slds-align_absolute-center">
@@ -48,8 +52,8 @@
 							<template for:each={data} for:item="entry">
 								<template if:false={entry.hidden}>
 									<lightning-layout-item key={entry.Id} size="1" padding="horizontal-small" flexibility="grow" class="layout-item">
-										<!-- <lightning-relative-date-time value={entry.CreatedDate}></lightning-relative-date-time> -->
-										<small><lightning-formatted-date-time value={entry.CreatedDate} year="2-digit" month="2-digit" day="2-digit"></lightning-formatted-date-time></small>
+										<!-- <lightning-relative-date-time value={entry.Date__c}></lightning-relative-date-time> -->
+										<small><lightning-formatted-date-time value={entry.Date__c} year="2-digit" month="2-digit" day="2-digit"></lightning-formatted-date-time></small>
 									</lightning-layout-item>
 									<lightning-layout-item key={entry.Id} size="4" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<template if:true={entry.isEdit}>

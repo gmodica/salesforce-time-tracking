@@ -20,13 +20,14 @@ public with sharing class TimetrackController {
 	 * @description:
 	 */
     @AuraEnabled
-	public static Timetrack_Entry__c saveTimetrackEntry(Id timetrackEntryId, String name, Id categoryId) {
+	public static Timetrack_Entry__c saveTimetrackEntry(Id timetrackEntryId, String name, Id categoryId, Date entryDate) {
 		try {
 			Timetrack_Entry__c entry = new Timetrack_Entry__c(
 				Id = timetrackEntryId,
 				Name = name,
 				Category__c = categoryId
 			);
+			if(entryDate != null) entry.Date__c = entryDate;
 			upsert entry;
 
 			entry = selectTimetrackEntryById(entry.Id);
@@ -281,6 +282,8 @@ public with sharing class TimetrackController {
 				Timetrack_Category__c
 			where
 				Disabled__c = false
+			order by
+				Order__c nulls last
 		];
 	}
 
@@ -293,6 +296,7 @@ public with sharing class TimetrackController {
 				Id,
 				Name,
 				CreatedDate,
+				Date__c,
 				Category__c,
 				Category__r.Name,
 				Duration__c,
@@ -311,9 +315,9 @@ public with sharing class TimetrackController {
 				Timetrack_Entry__c
 			where
 				OwnerId = :UserInfo.getUserId() and
-				(Completed__c = false or End_Date__c = TODAY or End_Date__c = THIS_WEEK)
+				(Completed__c = false or Date__c = TODAY or Date__c = THIS_WEEK or Date__c = THIS_MONTH)
 			order by
-				CreatedDate
+				Date__c desc,CreatedDate desc
 		];
 	}
 
@@ -326,6 +330,7 @@ public with sharing class TimetrackController {
 				Id,
 				Name,
 				CreatedDate,
+				Date__c,
 				Category__c,
 				Category__r.Name,
 				Duration__c,
