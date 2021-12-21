@@ -703,29 +703,38 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 		this.showCompleted = !this.showCompleted;
 	}
 
+	convertDateToLocalTimeZone(epochDate) {
+		const localDate = new Date(epochDate);
+		const timezoneOffset = localDate.getTimezoneOffset() / 60;
+		const utcDate = new Date(epochDate + ' 00:00:00 GMT-' + timezoneOffset.toString().padStart(2, '0') + '00');
+
+		return utcDate;
+	}
+
 	isThisWeek(epochDate) {
 		if(!epochDate) return false;
-		const date = new Date(epochDate);
+		const date = this.convertDateToLocalTimeZone(epochDate);
 
 		const now = new Date();
 
 		const weekDay = (now.getDay() + 6) % 7; // Make sure Sunday is 6, not 0
 		const monthDay = now.getDate();
 		const mondayThisWeek = monthDay - weekDay;
+		const sundayThisWeek = monthDay - weekDay - 1;
 
 		const startOfThisWeek = new Date(+now);
-		startOfThisWeek.setDate(mondayThisWeek);
+		startOfThisWeek.setDate(sundayThisWeek);
 		startOfThisWeek.setHours(0, 0, 0, 0);
 
 		const startOfNextWeek = new Date(+startOfThisWeek);
-		startOfNextWeek.setDate(mondayThisWeek + 7);
+		startOfNextWeek.setDate(sundayThisWeek + 7);
 
 		return date >= startOfThisWeek && date < startOfNextWeek;
 	}
 
 	isThisMonth(epochDate) {
 		if(!epochDate) return false;
-		const date = new Date(epochDate);
+		const date = this.convertDateToLocalTimeZone(epochDate);
 
 		const today = new Date();
 
@@ -734,16 +743,18 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 
 	isToday(epochDate) {
 		if(!epochDate) return false;
-		const date = new Date(epochDate);
+		const date = this.convertDateToLocalTimeZone(epochDate);
 
 		const today = new Date();
 
-		return date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear();
+		const result = date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear();
+
+		return result;
 	}
 
 	isYesterday(epochDate) {
 		if(!epochDate) return false;
-		const date = new Date(epochDate);
+		const date = this.convertDateToLocalTimeZone(epochDate);
 
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() - 1)
