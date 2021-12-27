@@ -705,8 +705,17 @@ export default class Timetracking extends NavigationMixin(LightningElement) {
 
 	convertDateToLocalTimeZone(epochDate) {
 		const localDate = new Date(epochDate);
-		const timezoneOffset = localDate.getTimezoneOffset() / 60;
-		const utcDate = new Date(epochDate + ' 00:00:00 GMT-' + timezoneOffset.toString().padStart(2, '0') + '00');
+
+		let timezoneOffset = localDate.getTimezoneOffset() / 60;
+		let sign = '-';
+		if(timezoneOffset < 0) {
+			sign = '+';
+			timezoneOffset *= -1;
+		}
+
+		const dateString = epochDate + ' 00:00:00 GMT' + sign + timezoneOffset.toString().padStart(2, '0') + '00';
+
+		const utcDate = new Date(dateString);
 
 		return utcDate;
 	}

@@ -53,7 +53,7 @@
 								<template if:false={entry.hidden}>
 									<lightning-layout-item key={entry.Id} size="1" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<!-- <lightning-relative-date-time value={entry.Date__c}></lightning-relative-date-time> -->
-										<small><lightning-formatted-date-time value={entry.Date__c} year="2-digit" month="2-digit" day="2-digit"></lightning-formatted-date-time></small>
+										<small><lightning-formatted-date-time value={entry.Date__c} year="2-digit" month="2-digit" day="2-digit" time-zone="UTC"></lightning-formatted-date-time></small>
 									</lightning-layout-item>
 									<lightning-layout-item key={entry.Id} size="4" padding="horizontal-small" flexibility="grow" class="layout-item">
 										<template if:true={entry.isEdit}>
