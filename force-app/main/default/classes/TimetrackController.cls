@@ -142,7 +142,7 @@ public with sharing class TimetrackController {
 			Timetrack_Entry__c entry = selectTimetrackEntryById(timetrackEntryId);
 			if(entry == null) return null;
 
-			if(entry.Stopwatch_Start__c == null) entry.Stopwatch_Start__c = 0;
+			if(entry.Stopwatch_Start__c == null) return entry;
 			if(entry.Duration__c == null) entry.Duration__c = 0;
 			Long totalTime = epoch - (Long)entry.Stopwatch_Start__c;
 
